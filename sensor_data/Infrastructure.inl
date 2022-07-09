@@ -8,13 +8,13 @@ namespace sensorData
 /* —————————————————— CircularQueue模板类的实现部分 —————————————————— */
 template <class T>
 CircularQueue<T>::CircularQueue()
-    : d_front(-1), d_rear(-1), d_size(0), d_maxsize(20)
+    : d_front(0), d_rear(0), d_size(0), d_maxsize(20)
 {
     d_arr = std::unique_ptr<T[]>(new T[d_maxsize](), std::default_delete<T[]>());
 }
 
 template <class T>
-CircularQueue<T>::CircularQueue(int size) : d_front(-1), d_rear(-1), d_size(0), d_maxsize(size)
+CircularQueue<T>::CircularQueue(int size) : d_front(0), d_rear(0), d_size(0), d_maxsize(size)
 {
     d_arr = std::unique_ptr<T[]>(new T[d_maxsize](), std::default_delete<T[]>());
 }
@@ -44,12 +44,15 @@ CircularQueue<T>::~CircularQueue()
 
 template <class T>
 bool CircularQueue<T>::isFull() const{
-    return (d_rear + 1) % d_maxsize == d_front;
+    if (d_rear == 0){
+        return d_size == d_maxsize;
+    }
+    return (d_rear) % d_maxsize == d_front;
 }
 
 template <class T>
 bool CircularQueue<T>::isEmpty() const{
-    return d_rear == d_front;
+    return d_size == 0;
 }
 
 template <class T>
@@ -64,24 +67,25 @@ T CircularQueue<T>::Deque()
         AERROR << "Circle Queue is Empty.";
         return T();
     }
-    d_front = (d_front + 1) % d_maxsize;
     T ret = d_arr[d_front];
+    d_front = (d_front + 1) % d_maxsize;
     d_size--;
     return ret;
 }
 
 template <class T>
 void CircularQueue<T>::Enque(const T &value){
-    if (!isFull())
+    if (isFull()){
+        d_arr[d_rear] = value;
+        d_rear = (d_rear + 1) % d_maxsize;
+        d_front = (d_front + 1) % d_maxsize;
+    }else{
+        d_arr[d_rear] = value;
+        d_rear = (d_rear + 1) % d_maxsize;
         d_size++;
-    else{
-#ifdef USE_COUT
-        AWARN << "Circle Queue is Full.";
-#endif
     }
-    d_rear = (d_rear + 1) % d_maxsize;
-    d_arr[d_rear] = value;
 
+    // AINFO << "--> value: " << value << "; and --> d_size: " << d_size;
 }
 
 template <class T>
@@ -101,8 +105,8 @@ T CircularQueue<T>::rear() const
         AERROR << "Circle Queue is Empty.";
         return T();
     }
-
-    return d_arr[d_rear];
+    int tmp = (d_rear == 0 ? d_maxsize - 1 : d_rear - 1);
+    return d_arr[tmp];
 }
 
 template <class T>
@@ -156,8 +160,8 @@ std::ostream &operator << (std::ostream &os, CircularQueue<R> &q)
         return os;
     }else{
         auto i = q.d_front;
-        if ( i == -1 ) i++;
-        while (i != q.d_rear){
+        auto end = (q.d_rear == 0 ? q.d_maxsize - 1 : q.d_rear - 1);
+        while (i != end){
             os << q.d_arr[i] << " ";
             if (i == q.d_maxsize - 1)
                 i = 0;
