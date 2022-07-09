@@ -3,6 +3,8 @@
 #include <iostream>
 #include <memory>
 #include <cassert>
+#include <Eigen/Core>
+#include <Eigen/Dense>
 #include "../common/logger.hpp"
 
 namespace sensorData
