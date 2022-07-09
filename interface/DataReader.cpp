@@ -35,30 +35,34 @@ std::vector<sensorData::PoseData> GetTUMPoseFromFile(std::ifstream &pose_stream,
     return pose_data;
 }
 
-std::vector<std::string> ReadFolder(const std::string &folder)
+void ReadFolder(const std::string &folder, std::vector<std::string> &files, int mode)
 {
-    std::vector<std::string> files;
-    auto dir = opendir(folder.c_str());
-
-    if ((dir) != nullptr)
+#if GCC_VERSION >= 90400
+    namespace fs = std::filesystem;
+#else
+    namespace fs = boost::filesystem;
+#endif
+    const fs::path folder_path(folder);
+    if (fs::is_directory(folder_path))
     {
-        struct dirent *entry;
-        entry = readdir(dir);
-        while (entry)
+        for (fs::directory_iterator it(folder_path); it != fs::directory_iterator(); ++it)
         {
-            auto temp = folder + "/" + entry->d_name;
-            if (std::strcmp(entry->d_name, "") == 0 ||
-                std::strcmp(entry->d_name, ".") == 0 ||
-                std::strcmp(entry->d_name, "..") == 0)
+            const fs::path cur_pos = folder_path / (it->path()).filename();
+            // AINFO << "folder: " << cur_pos.string();
+
+            if (fs::is_directory(cur_pos))
             {
-                entry = readdir(dir);
-                continue;
+                if (mode != 1) files.emplace_back(cur_pos.string());
+                if (mode != 0) ReadFolder(cur_pos.string(), files);
             }
-            files.push_back(temp);
-            entry = readdir(dir);
+            else if (fs::is_regular_file(cur_pos))
+            {
+                if (mode != 2) files.emplace_back(cur_pos.string());
+            }
         }
+    }else{
+        AERROR << folder << " is not a directory.";
     }
-    return files;
 }
 
 void LoadExtrinsic(
@@ -137,13 +141,27 @@ bool CopyFiles(const std::string &src, const std::string &dst, int mode)
 
     // 待拷贝文件为普通文件，则直接拷贝
     if (fs::is_regular_file(src_path)){
-        // case1: src is a file, dst is also a file or not exist
-        if (fs::is_regular_file(dst_path) || !fs::exists(dst_path)){
+        // dst is not exist
+        if (!fs::exists(dst_path))
+            fs::create_directories(dst_path.parent_path());
+
+        // case1: src is a file, dst is also a file
+        if (fs::is_regular_file(dst_path) || !fs::exists(dst_path))
+        {
+#if GCC_VERSION >= 90400
             if (mode == 0){
-                fs::copy_file(src_path, dst_path, ec);
+                fs::copy_file(src_path, dst_path, fs::copy_options::overwrite_existing, ec);
             }else{
                 fs::rename(src_path, dst_path, ec);
             }
+
+#else
+            if (mode == 0){
+                fs::copy_file(src_path, dst_path, fs::copy_option::overwrite_if_exists, ec);
+            }else{
+                fs::rename(src_path, dst_path, ec);
+            }
+#endif
 
             if (ec)
             {
@@ -154,11 +172,20 @@ bool CopyFiles(const std::string &src, const std::string &dst, int mode)
         // case2: src is a file, dst is a directory
         else if (fs::is_directory(dst_path)){
             fs::path dst_file = dst_path / src_path.filename();
+#if GCC_VERSION >= 90400
             if (mode == 0){
-                fs::copy_file(src_path, dst_path, ec);
+                fs::copy_file(src_path, dst_file, fs::copy_options::overwrite_existing, ec);
             }else{
-                fs::rename(src_path, dst_path, ec);
+                fs::rename(src_path, dst_file, ec);
             }
+
+#else
+            if (mode == 0){
+                fs::copy_file(src_path, dst_file, fs::copy_option::overwrite_if_exists, ec);
+            }else{
+                fs::rename(src_path, dst_file, ec);
+            }
+#endif
             if (ec)
             {
                 AERROR << "Copy File Failed: " << ec.message();
@@ -169,7 +196,7 @@ bool CopyFiles(const std::string &src, const std::string &dst, int mode)
         else{
             if (ec)
             {
-                AERROR << "Copy File Failed: " << ec.message();
+                AERROR << "Copy File Failed: dst is neither file nor directory. ec: " << ec.message();
                 return false;
             }
         }
@@ -178,14 +205,15 @@ bool CopyFiles(const std::string &src, const std::string &dst, int mode)
 
     // 待拷贝文件为目录，则递归拷贝
     if (fs::is_directory(src_path)){
-        if (!fs::exists(dst))
+        if (!fs::exists(dst_path))
         {
-            fs::create_directories(dst);
+            fs::create_directories(dst_path);
         }
-        for (fs::directory_iterator it(src); it != fs::directory_iterator(); ++it)
+        for (fs::directory_iterator it(src_path); it != fs::directory_iterator(); ++it)
         {
-            const fs::path newSrc = src / it->path();
-            const fs::path newDst = dst / it->path();
+            const fs::path newSrc = src_path / (it->path()).filename();
+            const fs::path newDst = dst_path / (it->path()).filename();
+            // AINFO << "newSrc: " << newSrc.string() << "\n newDst: " << newDst.string();
             if (fs::is_directory(newSrc))
             {
                 CopyFiles(newSrc.string(), newDst.string());

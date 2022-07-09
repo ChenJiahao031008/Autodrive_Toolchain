@@ -1,6 +1,8 @@
-result
-build
-log
+gtest/resluts
+build/
+bin/
+log/
+
 # Prerequisites
 *.d
 
