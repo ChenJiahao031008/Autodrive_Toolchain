@@ -1,7 +1,7 @@
 project(unit_testing)
 
 # 输出可执行文件到指定目录
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/../bin)
+# set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/../bin)
 
 add_executable(common_test common_test.cpp)
 target_compile_features(common_test PRIVATE cxx_std_17)

@@ -2,8 +2,6 @@
 #include <gtest/gtest.h>
 
 #include "../common/logger.hpp"
-#include "../common/time_base.hpp"
-#include "../common/time_utils.hpp"
 #include "../interface/DataReader.h"
 #include "../interface/DataProcessor.h"
 #include "../interface/DataConverter.h"
@@ -11,26 +9,28 @@
 TEST(TestDataReader, TestGetPose)
 {
     // 测试文件读写接口使用，读取lidar_pose.txt文件并获取位姿
-    std::ifstream pose_stream("../gtest/config_data/lidar_pose.txt", std::ios::in);
+    std::ifstream pose_stream("../../gtest/config_data/lidar_pose.txt", std::ios::in);
     auto vPoses = interface::GetTUMPoseFromFile(pose_stream);
     EXPECT_EQ(vPoses.size(), 953);
     EXPECT_DOUBLE_EQ(vPoses[0].timestamp, 1648022167.1589715);
     EXPECT_DOUBLE_EQ(vPoses[vPoses.size() - 1].timestamp, 1648022365.8215065);
     vPoses.clear();
-    std::ifstream pose_stream2("../gtest/config_data/lidar_pose.txt", std::ios::in);
+    pose_stream.close();
+    std::ifstream pose_stream2("../../gtest/config_data/lidar_pose.txt", std::ios::in);
     vPoses = interface::GetTUMPoseFromFile(pose_stream2, 3);
     EXPECT_EQ(vPoses.size(), 950);
+    pose_stream2.close();
 }
 
 TEST(TestDataReader, FolderOperation)
 {
     std::vector<std::string> filenames;
-    std::string path0 = "../gtest/config_data/lidar_pose.txt";
-    std::string path1 = "../gtest/resluts/test";
-    std::string path2 = "../gtest/resluts/test/test2";
-    std::string path3 = "../gtest/resluts/test/test2/lidar_pose2.txt";
-    std::string path4 = "../gtest/resluts/test3/";
-    std::string path5 = "../gtest/resluts/test4/";
+    std::string path0 = "../../gtest/config_data/lidar_pose.txt";
+    std::string path1 = "../../gtest/resluts/test";
+    std::string path2 = "../../gtest/resluts/test/test2";
+    std::string path3 = "../../gtest/resluts/test/test2/lidar_pose2.txt";
+    std::string path4 = "../../gtest/resluts/test3/";
+    std::string path5 = "../../gtest/resluts/test4/";
 
     // 执行文件拷贝操作，目标文件夹不存在时会自动创建(文件->文件)
     interface::CopyFiles(path0, path3);
@@ -60,12 +60,12 @@ TEST(TestDataReader, FolderOperation)
     filenames.clear();
 
     // 执行文件夹拷贝操作，目标文件夹不存在时会自动创建(文件夹->文件夹)
-    interface::CopyFiles("../gtest/config_data", path4);
+    interface::CopyFiles("../../gtest/config_data", path4);
     interface::ReadFolder(path4, filenames, 1);
     sort(filenames.begin(), filenames.end());
-    EXPECT_EQ(filenames[0], "../gtest/resluts/test3/extrinsics.yaml");
-    EXPECT_EQ(filenames[1], "../gtest/resluts/test3/lidar_pose.txt");
-    EXPECT_EQ(filenames[2], "../gtest/resluts/test3/test/test233.txt");
+    EXPECT_EQ(filenames[0], "../../gtest/resluts/test3/extrinsics.yaml");
+    EXPECT_EQ(filenames[1], "../../gtest/resluts/test3/lidar_pose.txt");
+    EXPECT_EQ(filenames[2], "../../gtest/resluts/test3/test/test233.txt");
 
     // 获取文件的名称，不包含路径和扩展名
     std::string res_str;
@@ -77,8 +77,10 @@ TEST(TestDataReader, FolderOperation)
 TEST(TestDataProcessor, TestPoseInterpolation)
 {
     // 测试旋转位姿插值使用 //
-    std::ifstream pose_stream("../gtest/config_data/lidar_pose.txt", std::ios::in);
+    std::ifstream pose_stream("../../gtest/config_data/lidar_pose.txt", std::ios::in);
     auto vPoses = interface::GetTUMPoseFromFile(pose_stream);
+    pose_stream.close();
+
     auto pose_example_1 = vPoses[0].GetRotation();
     auto pose_example_2 = vPoses[30].GetRotation();
     auto pose_result = interface::DataProcessor::RotationInterpolation(pose_example_1, pose_example_2, 0.8);
