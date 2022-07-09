@@ -19,6 +19,7 @@ link_directories(
 )
 
 add_subdirectory(common)
+add_subdirectory(math_utils)
 add_subdirectory(interface)
 add_subdirectory(sensor_data)
 

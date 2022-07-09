@@ -43,7 +43,8 @@ CircularQueue<T>::~CircularQueue()
 }
 
 template <class T>
-bool CircularQueue<T>::isFull() const{
+inline bool CircularQueue<T>::isFull() const
+{
     if (d_rear == 0){
         return d_size == d_maxsize;
     }
@@ -51,17 +52,18 @@ bool CircularQueue<T>::isFull() const{
 }
 
 template <class T>
-bool CircularQueue<T>::isEmpty() const{
+inline bool CircularQueue<T>::isEmpty() const
+{
     return d_size == 0;
 }
 
 template <class T>
-int CircularQueue<T>::GetMaxSize() const{
+inline int CircularQueue<T>::GetMaxSize() const{
     return d_maxsize;
 }
 
 template <class T>
-T CircularQueue<T>::Deque()
+inline T CircularQueue<T>::Deque()
 {
     if (isEmpty()){
         AERROR << "Circle Queue is Empty.";
@@ -74,7 +76,8 @@ T CircularQueue<T>::Deque()
 }
 
 template <class T>
-void CircularQueue<T>::Enque(const T &value){
+inline void CircularQueue<T>::Enque(const T &value)
+{
     if (isFull()){
         d_arr[d_rear] = value;
         d_rear = (d_rear + 1) % d_maxsize;
@@ -89,7 +92,7 @@ void CircularQueue<T>::Enque(const T &value){
 }
 
 template <class T>
-T CircularQueue<T>::front() const
+inline T CircularQueue<T>::front() const
 {
     if (isEmpty()){
         AERROR << "Circle Queue is Empty.";
@@ -99,7 +102,7 @@ T CircularQueue<T>::front() const
 }
 
 template <class T>
-T CircularQueue<T>::rear() const
+inline T CircularQueue<T>::rear() const
 {
     if (isEmpty()){
         AERROR << "Circle Queue is Empty.";
@@ -110,7 +113,7 @@ T CircularQueue<T>::rear() const
 }
 
 template <class T>
-T CircularQueue<T>::DataPrev(int idx) const
+inline T CircularQueue<T>::DataPrev(int idx) const
 {
     if (isEmpty())
     {
@@ -125,7 +128,7 @@ T CircularQueue<T>::DataPrev(int idx) const
 }
 
 template <class T>
-T CircularQueue<T>::DataNext(int idx) const
+inline T CircularQueue<T>::DataNext(int idx) const
 {
     if (isEmpty())
     {
@@ -139,19 +142,19 @@ T CircularQueue<T>::DataNext(int idx) const
 }
 
 template <class T>
-const int CircularQueue<T>::size()
+inline const int CircularQueue<T>::size()
 {
     return d_size;
 }
 
 template <class T>
-const T* CircularQueue<T>::buffer()
+inline const T *CircularQueue<T>::buffer()
 {
     return d_arr.get();
 }
 
 template <class R>
-std::ostream &operator << (std::ostream &os, CircularQueue<R> &q)
+inline std::ostream &operator<<(std::ostream &os, CircularQueue<R> &q)
 {
     if (q.isEmpty()){
 #ifdef USE_COUT
@@ -176,7 +179,7 @@ std::ostream &operator << (std::ostream &os, CircularQueue<R> &q)
 /* —————————————————— SO3模板类的实现部分 —————————————————— */
 
 template <class T>
-Eigen::Matrix<T, 3, 3> SO3<T>::hat(const Eigen::Matrix<T, 3, 1> &omega)
+inline Eigen::Matrix<T, 3, 3> SO3<T>::hat(const Eigen::Matrix<T, 3, 1> &omega)
 {
     Eigen::Matrix<T, 3, 3> ret;
     ret << 0, -omega(2, 0), omega(1, 0),
@@ -186,7 +189,7 @@ Eigen::Matrix<T, 3, 3> SO3<T>::hat(const Eigen::Matrix<T, 3, 1> &omega)
 }
 
 template <class T>
-Eigen::Matrix<T, 3, 1> SO3<T>::vee(const Eigen::Matrix<T, 3, 3> &Omega)
+inline Eigen::Matrix<T, 3, 1> SO3<T>::vee(const Eigen::Matrix<T, 3, 3> &Omega)
 {
     assert(fabs(Omega(2, 1) + Omega(1, 2)) < SMALL_EPS);
     assert(fabs(Omega(0, 2) + Omega(2, 0)) < SMALL_EPS);
@@ -197,13 +200,13 @@ Eigen::Matrix<T, 3, 1> SO3<T>::vee(const Eigen::Matrix<T, 3, 3> &Omega)
 }
 
 template <class T>
-SO3<T> SO3<T>::exp() const
+inline SO3<T> SO3<T>::exp() const
 {
     return SO3<T>(unit_quaternion_);
 }
 
 template <class T>
-SO3<T> SO3<T>::exp(const Eigen::Matrix<T, 3, 1> &omega)
+inline SO3<T> SO3<T>::exp(const Eigen::Matrix<T, 3, 1> &omega)
 {
     // ***************************************************************** //
     // * 实现部分公式表述为：
@@ -233,13 +236,13 @@ SO3<T> SO3<T>::exp(const Eigen::Matrix<T, 3, 1> &omega)
 }
 
 template <class T>
-Eigen::Matrix<T, 3, 1> SO3<T>::log() const
+inline Eigen::Matrix<T, 3, 1> SO3<T>::log() const
 {
     return SO3<T>::log(*this);
 }
 
 template <class T>
-Eigen::Matrix<T, 3, 1> SO3<T>::log(const SO3 &so3)
+inline Eigen::Matrix<T, 3, 1> SO3<T>::log(const SO3 &so3)
 {
     // ***************************************************************** //
     // * 实现部分参考论文： Integrating Generic Sensor Fusion Algorithms withSound State Representations through Encapsulation of Manifolds, 2011. 这也是sophus库的实现方法
