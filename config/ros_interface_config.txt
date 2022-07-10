@@ -1,0 +1,13 @@
+{
+    .equipped_sensor = 3,
+    .camera_topic = "/camera/color/image_raw",
+    .depth_topic = "/camera/aligned_depth_to_color/image_raw",
+    .imu_topic = "/camera/imu",
+    .lidar_topic = "",
+    .odom_topic = "",
+    .gps_topic = "",
+    .yaml_file = "../../config/D435i.yaml",
+    .gravity_aixs = 3,
+    .delayed = false,
+
+}

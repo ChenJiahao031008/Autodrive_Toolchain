@@ -1,7 +1,7 @@
 project(unit_testing)
 
 # 输出可执行文件到指定目录
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/../bin)
+# set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/../bin)
 
 add_executable(common_test common_test.cpp)
 target_compile_features(common_test PRIVATE cxx_std_17)
@@ -54,3 +54,15 @@ target_link_libraries(math_utils_test
     ${Boost_LIBRARIES}
 )
 add_test(NAME math_utils_test COMMAND math_utils_test)
+
+
+add_executable(third_party_test third_party_test.cpp)
+target_compile_features(third_party_test PRIVATE cxx_std_17)
+target_link_libraries(third_party_test
+    gtest gtest_main
+    common
+    math_utils
+    ezcfg::ezcfg
+    ${Boost_LIBRARIES}
+)
+add_test(NAME third_party_test COMMAND third_party_test)

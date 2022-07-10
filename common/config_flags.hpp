@@ -3,7 +3,7 @@
 
 namespace common {
 
-    DECLARE_string(example_file);
+DECLARE_string(example_file);
 
 }  // namespace common
 

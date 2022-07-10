@@ -28,7 +28,6 @@ public:
     } options;
 
 public:
-    // TODO: 时间管理系统和定时器
     // 默认构造函数
     PoseData(){};
 

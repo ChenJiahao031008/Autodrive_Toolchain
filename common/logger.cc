@@ -2,7 +2,7 @@
 #include <iostream>
 #include "logger.hpp"
 
-
+// #define LOG_CORE_DUMP_CAPTURE
 namespace common {
 
 Logger::Logger(int &argsize, char**& program) {
@@ -17,8 +17,10 @@ Logger::Logger(int &argsize, char**& program) {
     FLAGS_alsologtostderr = true;           // 输出到屏幕的日志也输出到文件
 
     google::SetStderrLogging(google::INFO); // 设置级别高于INFO 的日志同一时候输出到屏幕
-    google::InstallFailureSignalHandler();  // 捕捉 core dumped
 
+#ifdef LOG_CORE_DUMP_CAPTURE
+    google::InstallFailureSignalHandler();  // 捕捉 core dumped
+#endif
     /* 如果需要调整文件位置，请修改下面代码 */
 #if GCC_VERSION >= 90400
     auto curr_path = std::filesystem::current_path(); // 获取当前路径
