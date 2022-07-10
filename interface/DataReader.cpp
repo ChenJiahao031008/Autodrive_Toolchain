@@ -2,7 +2,7 @@
 
 namespace interface
 {
-std::vector<sensorData::PoseData> GetTUMPoseFromFile(std::ifstream &pose_stream, int drop_lines_num)
+std::vector<sensorData::PoseData> DataReader::GetTUMPoseFromFile(std::ifstream &pose_stream, int drop_lines_num)
 {
     std::string line;
 
@@ -35,7 +35,7 @@ std::vector<sensorData::PoseData> GetTUMPoseFromFile(std::ifstream &pose_stream,
     return pose_data;
 }
 
-void ReadFolder(const std::string &folder, std::vector<std::string> &files, int mode)
+void DataReader::ReadFolder(const std::string &folder, std::vector<std::string> &files, int mode)
 {
 #if GCC_VERSION >= 90400
     namespace fs = std::filesystem;
@@ -65,7 +65,7 @@ void ReadFolder(const std::string &folder, std::vector<std::string> &files, int 
     }
 }
 
-void LoadExtrinsic(
+void DataReader::LoadExtrinsic(
     const std::string &file_path, Eigen::Affine3d &extrinsic)
 {
     YAML::Node config = YAML::LoadFile(file_path);
@@ -94,7 +94,7 @@ void LoadExtrinsic(
     }
 }
 
-bool LoadIntrinsic(const std::string &intrinsics_path, cv::Mat &dist_coeffs, cv::Mat &intrisic_mat)
+bool DataReader::LoadIntrinsic(const std::string &intrinsics_path, cv::Mat &dist_coeffs, cv::Mat &intrisic_mat)
 {
 #if GCC_VERSION >= 90400
     if (!(std::filesystem::exists(intrinsics_path)))
@@ -127,7 +127,7 @@ bool LoadIntrinsic(const std::string &intrinsics_path, cv::Mat &dist_coeffs, cv:
     return true;
 }
 
-bool CopyFiles(const std::string &src, const std::string &dst, int mode)
+bool DataReader::CopyFiles(const std::string &src, const std::string &dst, int mode)
 {
 #if GCC_VERSION >= 90400
     namespace fs = std::filesystem;
@@ -248,7 +248,7 @@ bool CopyFiles(const std::string &src, const std::string &dst, int mode)
     return false;
 }
 
-bool CopyDirectory(const std::string &strSourceDir, const std::string &strDestDir)
+bool DataReader::CopyDirectory(const std::string &strSourceDir, const std::string &strDestDir)
 {
 #if GCC_VERSION >= 90400
     namespace fs = std::filesystem;
@@ -286,7 +286,8 @@ bool CopyDirectory(const std::string &strSourceDir, const std::string &strDestDi
     return true;
 }
 
-bool GetFileNameInPath(const std::string &path, std::string &filename){
+bool DataReader::GetFileNameInPath(const std::string &path, std::string &filename)
+{
 #if GCC_VERSION >= 90400
     namespace fs = std::filesystem;
 #else
@@ -302,6 +303,16 @@ bool GetFileNameInPath(const std::string &path, std::string &filename){
     }
     else
         return false;
+}
+
+std::string DataReader::GetCurrentDir()
+{
+#if GCC_VERSION >= 90400
+    auto curr_path = std::filesystem::current_path();
+#else
+    auto curr_path = boost::filesystem::current_path();
+#endif
+    return curr_path.string();
 }
 
 } // namespace interface

@@ -4,3 +4,4 @@ cd build/gtest/
 ./common_test
 ./math_utils_test
 ./math_kalman_filter_test
+./third_party_test

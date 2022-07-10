@@ -1,7 +1,11 @@
 gtest/resluts
+gtest/log
 build/
 bin/
 log/
+.VSCodeCounter/
+ros_interface/build/
+ros_interface/external_library/
 
 # Prerequisites
 *.d
