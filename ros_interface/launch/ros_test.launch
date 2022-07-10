@@ -1,6 +1,6 @@
 <launch>
     <arg name="bag_filename" default="/home/chen/Datasets/TUM/freiburg2_desk.bag"/>
-    <node pkg="Autodrive_Toolchain"  type="ros_interface"  name="ros_interface"  output="screen"/>
+    <node pkg="ros_interface"  type="ros_interface"  name="ros_interface"  output="screen"/>
 
     <!--rosbag -->
     <node name="playbag" pkg="rosbag" type="play"

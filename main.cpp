@@ -18,7 +18,7 @@
 int main(int argc, char** argv)
 {
     common::Logger logger(argc, argv);
-    ezcfg::Interpreter itp("../../config/config.txt", true);
+    ezcfg::Interpreter itp("../config/config.txt", true);
     Config conf;
     itp.parse(conf);
     AINFO << conf.example_name;

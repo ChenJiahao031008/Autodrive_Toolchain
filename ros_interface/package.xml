@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>Autodrive_Toolchain</name>
+  <name>ros_interface</name>
   <version>0.0.0</version>
-  <description>The Autodrive_Toolchain package</description>
+  <description>The ros_interface package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
