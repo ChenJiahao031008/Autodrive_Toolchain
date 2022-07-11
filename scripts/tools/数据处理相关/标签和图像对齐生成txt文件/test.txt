@@ -1,0 +1,7 @@
+./test_image/654321.jpg ./test_label/654321.txt
+./test_image/789456.jpg ./test_label/789456.txt
+./test_image/963258.jpg ./test_label/963258.txt
+./test_image/abc1200.jpg ./test_label/abc1200.txt
+./test_image/bcd1300.jpg ./test_label/bcd1300.txt
+./test_image/master5600.jpg ./test_label/master5600.txt
+./test_image/ter1200.jpg ./test_label/ter1200.txt

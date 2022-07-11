@@ -13,9 +13,8 @@ RGBDIMessageFlow::RGBDIMessageFlow(ros::NodeHandle &nh, ROS_Interface_Config &co
     imu_sub_ptr_ = std::make_shared<IMUSubscriber>(nh, config.imu_topic, 500000);
 
     // 读取参数文件
-    const std::string current_dir = interface::DataReader::GetCurrentDir();
-    const std::string param_file = current_dir + config.yaml_file;
-    AINFO << "Current Dir is: " << current_dir;
+    const std::string current_dir = ros::package::getPath("ros_interface");
+    const std::string param_file = current_dir + "/" + config.yaml_file;
 
     /**
      * TODO: SLAM系统在此初始化
@@ -285,9 +284,8 @@ RGBDMessageFlow::RGBDMessageFlow(ros::NodeHandle &nh, ROS_Interface_Config &conf
     image_sub_ptr_ = std::make_shared<IMGSubscriber>(nh, config.camera_topic, config.depth_topic, 1000);
 
     // 读取参数文件
-    const std::string current_dir = interface::DataReader::GetCurrentDir();
-    const std::string param_file = current_dir + config.yaml_file;
-    AINFO << "Current Dir is: " << current_dir;
+    const std::string current_dir = ros::package::getPath("ros_interface");
+    const std::string param_file = current_dir + "/" + config.yaml_file;
 
     /**
      * TODO: SLAM系统在此初始化
