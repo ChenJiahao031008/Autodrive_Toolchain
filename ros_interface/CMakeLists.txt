@@ -59,9 +59,10 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/../bin)
 
 add_library(${PROJECT_NAME}_lib SHARED
     # ros
-    src/message_flow.cc
     src/imu_subscriber.cc
     src/image_subscriber.cc
+    src/rgbd_message_flow.cc
+    src/rgbdi_message_flow.cc
 )
 
 #必须为绝对路径，如有多个文件使用空格隔开

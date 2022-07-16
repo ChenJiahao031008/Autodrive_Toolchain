@@ -1,5 +1,7 @@
 
-#include "src/message_flow.h"
+#include "src/rgbd_message_flow.h"
+#include "src/rgbdi_message_flow.h"
+
 #ifndef LOG_CORE_DUMP_CAPTURE
 #define BACKWARD_HAS_DW 1
 #endif
