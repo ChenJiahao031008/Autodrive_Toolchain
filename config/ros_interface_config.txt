@@ -6,8 +6,8 @@
     .lidar_topic = "",
     .odom_topic = "",
     .gps_topic = "",
-    .yaml_file = "../../config/D435i.yaml",
+    .yaml_file = "../config/D435i.yaml",
     .gravity_aixs = 3,
     .delayed = false,
-
+    .trajectory_file = "../slam_results/ros_trajectory.txt",
 }

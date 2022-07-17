@@ -28,4 +28,6 @@ struct ROS_Interface_Config
     std::string yaml_file;
     int gravity_aixs;
     bool delayed;
+    // trajectory:
+    std::string trajectory_file;
 };

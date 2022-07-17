@@ -49,6 +49,13 @@ function run_ros_project(){
     cd ../../
 }
 
+function ros_save_traj(){
+    cd ros_interface/build/
+    source devel/setup.bash
+    rosservice call /save_odometry "{}"
+    cd ../../
+}
+
 
 function main() {
     local cmd="$1"
@@ -78,8 +85,15 @@ function main() {
         ros_build_and_run)
             build_ros_project && run_ros_project
             ;;
+        ros_save_traj)
+            ros_save_traj
+            ;;
         clean)
             clean_project
+            echo "clean_project finished."
+            ;;
+        *)
+            echo "${cmd} Unrecognized"
             ;;
 
     esac

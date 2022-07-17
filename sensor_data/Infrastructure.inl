@@ -113,6 +113,13 @@ inline T CircularQueue<T>::rear() const
 }
 
 template <class T>
+inline void CircularQueue<T>::clear(){
+    d_front = 0;
+    d_rear = 0;
+    d_size = 0;
+}
+
+template <class T>
 inline T CircularQueue<T>::DataPrev(int idx) const
 {
     if (isEmpty())

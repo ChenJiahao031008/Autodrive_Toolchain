@@ -42,6 +42,7 @@ generate_messages(DEPENDENCIES
 catkin_package(
     CATKIN_DEPENDS
     message_runtime
+    message_generation
     roscpp
     sensor_msgs
     cv_bridge
@@ -59,10 +60,10 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/../bin)
 
 add_library(${PROJECT_NAME}_lib SHARED
     # ros
-    src/imu_subscriber.cc
-    src/image_subscriber.cc
-    src/rgbd_message_flow.cc
-    src/rgbdi_message_flow.cc
+    src/subscriber/imu_subscriber.cc
+    src/subscriber/image_subscriber.cc
+    src/message_flow/rgbd_message_flow.cc
+    src/message_flow/rgbdi_message_flow.cc
 )
 
 #必须为绝对路径，如有多个文件使用空格隔开

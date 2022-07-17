@@ -10,10 +10,8 @@ RGBDMessageFlow::RGBDMessageFlow(ros::NodeHandle &nh, ROS_Interface_Config &conf
     const std::string current_dir = ros::package::getPath("ros_interface");
     const std::string param_file = current_dir + "/" + config.yaml_file;
 
-    /**
-     * TODO: SLAM系统在此初始化
-     *
-     */
+    /* TODO: SLAM系统在此初始化 */
+    slam_ptr_ = std::make_shared<SLAMExample>();
 
     AINFO << "SUCCESS TO READ PARAM!";
 }
@@ -32,10 +30,7 @@ void RGBDMessageFlow::Run()
     {
         if (!ValidData())
             continue;
-        /**
-         * TODO: 系统在此进行跟踪
-         *
-         */
+        slam_ptr_->Process(cvColorImgMat, cvDepthMat, image_time);
     }
 }
 
@@ -58,7 +53,7 @@ bool RGBDMessageFlow::HasData()
 
 bool RGBDMessageFlow::ValidData()
 {
-    double image_time;
+
     if (delayed)
     {
         current_image_color_data_ = image_color_data_buff_.front();
@@ -74,22 +69,9 @@ bool RGBDMessageFlow::ValidData()
         image_depth_data_buff_.clear();
     }
 
-    cv_bridge::CvImagePtr cvImgPtr, cvDepthPtr;
-    try
-    {
-        cvImgPtr = cv_bridge::toCvCopy(current_image_color_data_, sensor_msgs::image_encodings::BGR8);
-        cvDepthPtr = cv_bridge::toCvCopy(current_image_depth_data_, sensor_msgs::image_encodings::TYPE_16UC1);
-    }
-    catch (cv_bridge::Exception e)
-    {
-        ROS_ERROR_STREAM("CV_bridge Exception:" << e.what());
-        return false;
-    }
-
-    // cv::cvtColor(cvColorImgMat,CurrentGray,CV_BGR2GRAY);
-
-    cvColorImgMat = cvImgPtr->image;
-    cvDepthMat = cvDepthPtr->image;
+    image_time = current_image_color_data_.timestamp;
+    cvColorImgMat = current_image_color_data_.image;
+    cvDepthMat = current_image_depth_data_.image;
 
     return true;
 }

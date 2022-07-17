@@ -1,6 +1,7 @@
 
-#include "src/rgbd_message_flow.h"
-#include "src/rgbdi_message_flow.h"
+#include "src/message_flow/rgbd_message_flow.h"
+#include "src/message_flow/rgbdi_message_flow.h"
+#include "ros_interface/saveOdometry.h"
 
 #ifndef LOG_CORE_DUMP_CAPTURE
 #define BACKWARD_HAS_DW 1
@@ -16,13 +17,13 @@ enum class sensor_options : int
     LIDAR_IMU_GPS_ODOM_FUSION = 20
 };
 
-// bool save_odometry = false;
-// bool SaveOdometryCb(saveOdometry::Request &request, saveOdometry::Response &response)
-// {
-//     save_odometry = true;
-//     response.succeed = true;
-//     return response.succeed;
-// }
+bool save_odometry = false;
+bool SaveOdometryCb(ros_interface::saveOdometry::Request &request, ros_interface::saveOdometry::Response &response)
+{
+    save_odometry = true;
+    response.succeed = true;
+    return response.succeed;
+}
 
 int main(int argc, char *argv[])
 {
@@ -36,7 +37,7 @@ int main(int argc, char *argv[])
     ROS_Interface_Config conf;
     itp.parse(conf);
 
-    // ros::ServiceServer service = nh.advertiseService("save_odometry", SaveOdometryCb);
+    ros::ServiceServer service = nh.advertiseService("save_odometry", SaveOdometryCb);
     std::shared_ptr<MessageFlow> message_flow_ptr;
     switch (static_cast<sensor_options>(conf.equipped_sensor))
     {
@@ -56,11 +57,12 @@ int main(int argc, char *argv[])
         ros::spinOnce();
 
         message_flow_ptr->Run();
-        // if (save_odometry)
-        // {
-        //     save_odometry = false;
-        //     // message_flow_ptr->SaveTrajectory();
-        // }
+        if (save_odometry)
+        {
+            save_odometry = false;
+            AINFO << "save odometry";
+            message_flow_ptr->SaveTrajectory(current_ws + "/" + conf.trajectory_file);
+        }
 
         rate.sleep();
     }
