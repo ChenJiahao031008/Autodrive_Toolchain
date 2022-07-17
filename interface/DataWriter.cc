@@ -8,11 +8,14 @@ void DataWriter::SaveTrajectory(const std::string &filename, const std::vector<s
 
     // sort(trajectory.begin(),trajectory.end());
     std::ofstream output(filename.c_str(), std::ios::out);
-    if (!output.is_open())
-    {
-        AERROR << "Open File " << filename  << " Failed.";
-        return;
-    }
+
+    // if (!output.is_open())
+    // {
+    //     AERROR << "Open File " << filename  << " Failed.";
+    //     return;
+    // }else{
+    //     AINFO << filename << " is opened.";
+    // }
     output << std::fixed;
 
     for ( auto data: trajectory)

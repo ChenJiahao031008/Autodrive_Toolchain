@@ -14,6 +14,7 @@ class PoseData
 {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     double timestamp = 0.0;
     Eigen::Quaternionf rot = Eigen::Quaternionf(Eigen::Matrix3f::Identity());
     Eigen::Vector3f posi = Eigen::Vector3f::Zero();

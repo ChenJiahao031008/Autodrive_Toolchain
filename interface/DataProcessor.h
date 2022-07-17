@@ -63,7 +63,7 @@ bool PoseSyncData(sensorData::CircularQueue<T> &unsynced_data, sensorData::Circu
     float front_scale = (back_time - sync_time) / (back_time - front_time);
     float back_scale = (sync_time - front_time) / (back_time - front_time);
 
-    Eigen::Vector3f sync_posi = front_data.GetPosition() * front_scale + back_data.GetPosition() * back_scale;
+    Eigen::Vector3f sync_posi = front_posi * front_scale + back_posi * back_scale;
     Eigen::Vector3f sync_lin_velo = front_data.GetVelocity() * front_scale + back_data.GetVelocity() * back_scale;
     Eigen::Vector3f sync_ang_velo = front_data.GetAngularVelocity() * front_scale + back_data.GetAngularVelocity() * back_scale;
 

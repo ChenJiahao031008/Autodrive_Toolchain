@@ -30,6 +30,7 @@ public:
     T rear() const;             // 查看队列末端元素
     T DataPrev(int idx) const;  // 查看上一个元素
     T DataNext(int idx) const;  // 查看下一个元素
+    void clear();               // 清空队列
 
     bool isEmpty() const; // 队列是否非空
     bool isFull() const;  // 队列是否已满

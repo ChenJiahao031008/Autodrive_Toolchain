@@ -3,10 +3,6 @@
 #include <deque>
 #include <mutex>
 #include <thread>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/objdetect/objdetect.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
 #include <ros/package.h>
 
 #include "ros/ros.h"
@@ -16,12 +12,12 @@
 #include "sensor_msgs/Image.h"
 #include "geometry_msgs/Twist.h"
 #include "image_subscriber.h"
+#include "../../../sensor_data/image_data.hpp"
 
 #include <message_filters/subscriber.h>
 #include <message_filters/synchronizer.h>
 #include <message_filters/sync_policies/approximate_time.h>
 
-// using namespace std;
 // 近似同步器
 typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image> SyncPolicy;
 
@@ -29,9 +25,11 @@ class IMGSubscriber {
   public:
     IMGSubscriber(ros::NodeHandle &nh, std::string color_topic_name, std::string depth_topic_name, size_t buff_size);
 
-    IMGSubscriber() = default;
+    ~IMGSubscriber() = default;
 
     void ParseData(std::deque<sensor_msgs::Image> &image_color_data_buff, std::deque<sensor_msgs::Image> &image_depth_data_buff);
+
+    void ParseData(std::deque<sensorData::IMGData> &image_color_data_buff, std::deque<sensorData::IMGData> &image_depth_data_buff);
 
   private:
     void image_callback(const sensor_msgs::ImageConstPtr& msgImg,const sensor_msgs::ImageConstPtr& msgDepth);
