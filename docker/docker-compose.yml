@@ -1,0 +1,28 @@
+version: '3.4'
+services:
+  calib-tools:
+    build:
+      context: docker
+      dockerfile: Dockerfile
+      network: host
+    image: my_docker:v0
+    container_name: my_docker
+    environment:
+      - XAUTHORITY
+      - DISPLAY=unix$DISPLAY
+      - GDK_SCALE
+      - GDK_DPI_SCALE
+      - XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR
+      - DISPLAY=$DISPLAY
+      - TERM=xterm-color
+      - NVIDIA_DRIVER_CAPABILITIES=all
+      - QT_X11_NO_MITSHM=1
+    privileged: true
+    volumes:
+      - $PWD/workspace:/workspace
+      - /etc/localtime:/etc/localtime:ro
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - $XAUTHORITY:$XAUTHORITY
+    ports:
+      # supervisord admin:
+      - 49001:9001

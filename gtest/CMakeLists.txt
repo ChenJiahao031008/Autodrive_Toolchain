@@ -56,6 +56,17 @@ target_link_libraries(math_utils_test
 add_test(NAME math_utils_test COMMAND math_utils_test)
 
 
+add_executable(math_utils_sgd math_utils_sgd.cpp)
+target_compile_features(math_utils_sgd PRIVATE cxx_std_17)
+target_link_libraries(math_utils_sgd
+    gtest gtest_main
+    common
+    math_utils
+    ${Boost_LIBRARIES}
+)
+add_test(NAME math_utils_sgd COMMAND math_utils_sgd)
+
+
 add_executable(third_party_test third_party_test.cpp)
 target_compile_features(third_party_test PRIVATE cxx_std_17)
 target_link_libraries(third_party_test

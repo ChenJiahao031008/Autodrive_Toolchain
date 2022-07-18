@@ -5,6 +5,7 @@ A Simple Autodrive System Tool Chain, 一个简易的自动驾驶系统工具链
 
 ```
 gcc >= 5, recommend gcc >= 9.4
+cmake >= 3.15.0
 Eigen >= 3.2.7
 boost >= 1.58.0
 OpenCV 3.x.x
@@ -19,6 +20,9 @@ Besides, if you want to use `ros_interface`,  `ros >= kinetic` must be required.
 ## 2 How to Use
 
 ```bash
+# 1. download third party libaray
+git submodule update --init
+# 2. run script to build and test 
 bash run.sh build 		   			# 建立工程
 bash run.sh build_and_run  			# 建立工程并运行
 bash run.sh build_and_test 			# 建立工程并测试
@@ -61,7 +65,7 @@ bash run.sh ros_save_traj			# 运行ROS接口下的轨迹保存模块
 
 **以下是开发计划**：
 
-- [ ] 在math_utils中增加梯度下降、修正牛顿法等无约束优化算法；
+- [x] 在math_utils中增加梯度下降、修正牛顿法等无约束优化算法；
 - [ ] 在math_utils增加qr、lqr、svd分解，随机数生成器；
 - [ ] 在docker中增加常见的dockerfiles文件，包括一个带有ros的版本和一个不支持ros的版本；
 - [ ] 在modules中增加特征提取（点、直线、面）；
@@ -69,5 +73,5 @@ bash run.sh ros_save_traj			# 运行ROS接口下的轨迹保存模块
 - [ ] 在example中增加简单优化库的使用，如用最小二乘写一个由3D点拟合平面参数的函数；
 - [ ] 在example中对空间栅格进行hash及存储空间栅格的hash容器（简易voxel）；
 - [ ] 新增viewer模块，增加可视化实例；
-- [ ] 代码优化：DataConverter类重复性过高，需要用一种简单的方法降低重复性；
+- [x] 代码优化：DataConverter类重复性过高，需要用一种简单的方法降低重复性；
 
