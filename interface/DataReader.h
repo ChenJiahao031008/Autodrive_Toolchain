@@ -21,7 +21,7 @@ namespace interface
 
 class DataReader{
 public:
-    // 读取TUM格式的位姿数据
+    // 读取TUM格式的位姿数据，drop数值表示忽略前多少行
     static std::vector<sensorData::PoseData> GetTUMPoseFromFile(std::ifstream &pose_stream, int drop_lines_num = 0);
 
     // 读取文件夹中的所有文件夹和文件名

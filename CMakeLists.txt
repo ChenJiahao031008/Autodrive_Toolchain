@@ -35,6 +35,7 @@ add_subdirectory(common)
 add_subdirectory(math_utils)
 add_subdirectory(interface)
 add_subdirectory(sensor_data)
+add_subdirectory(modules)
 
 if(BUILD_TEST)
     add_subdirectory(gtest)
