@@ -31,8 +31,10 @@
 #define GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL_)
 #if GCC_VERSION >= 90400
 #include <filesystem>
+namespace fs = std::filesystem;
 #else
 #include <boost/filesystem.hpp>
+namespace fs = boost::filesystem;
 #endif
 
 /* 当存在ROS环境时，可以用ROS模块的节点名称代替默认模块名称 */
