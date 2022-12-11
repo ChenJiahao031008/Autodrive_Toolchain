@@ -27,11 +27,10 @@ class Container
       : ContainerT((PType *)data.data(), data.rows(), data.cols(),
                    Eigen::OuterStride<>(data.cols())){};
 
-  Container(
-      const Eigen::Map<Eigen::Matrix<PType, Eigen::Dynamic, Eigen::Dynamic>,
-                       Eigen::Aligned, Eigen::OuterStride<>> &data)
-      : ContainerT((PType *)data.data(), EigenDim, data.size() / EigenDim,
-                   Eigen::OuterStride<>(EigenDim)){};
+  // Eigen::Matrix相关
+  Container(const Eigen::Matrix<PType, Eigen::Dynamic, Eigen::Dynamic> &data)
+      : ContainerT((PType *)data.data(), data.rows(), data.cols(),
+                   Eigen::OuterStride<>(data.rows())){};
 
   // std::vector<PType> 相关
   template <ptrdiff_t Dim = EigenDim,
@@ -66,7 +65,6 @@ class Container
   Container(pcl::PointCloud<pcl::PointXYZ>::Ptr &data)
       : ContainerT(reinterpret_cast<float *>(&(data->points[0])), EigenDim,
                    data->size(), Eigen::OuterStride<>(4)){};
-
 };
 
 using Container2f = Container<float, 2>;

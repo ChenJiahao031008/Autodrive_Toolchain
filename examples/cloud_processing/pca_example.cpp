@@ -10,7 +10,7 @@
 #include "modules/cloud_processing/core/container.hpp"
 #include "modules/cloud_processing/core/principal_component_analysis.hpp"
 #include "modules/cloud_processing/io/cloud_reader.hpp"
-// #include "modules/cloud_processing/io/cloud_writer.hpp"
+#include "modules/cloud_processing/io/cloud_writer.hpp"
 
 #ifndef LOG_CORE_DUMP_CAPTURE
 #define BACKWARD_HAS_DW 1
@@ -21,73 +21,60 @@ using namespace Eigen;
 using namespace cloud_processing;
 
 int main(int argc, char **argv) {
-  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_out_ptr(
-      new pcl::PointCloud<pcl::PointXYZ>());
+  // test
+  // MatrixXf M1 = MatrixXf::Random(3, 8);
+  // cout << "Column major input:" << endl << M1 << "\n";
+  // cout << "M1.outerStride() = " << M1.outerStride() << endl;
+  // Map<Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>, Eigen::Aligned,
+  //     OuterStride<>>
+  //     M2(M1.data(), M1.rows() - 1, M1.cols(), OuterStride<>(M1.rows()));
+  // cout << "1 column over 3:" << endl << M2 << "\n";
+  // cout << "M2 size:" << endl << M2.rows() << " " << M2.cols() << "\n";
+
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud0_ptr(
       new pcl::PointCloud<pcl::PointXYZ>());
   std::string path = interface::DataReader::GetCurrentDir() +
                      "/../examples/cloud_processing/testdata/";
   AINFO << path;
 
-  // std::string cloud_path = path + "cloud_100.txt";
-  // ReadPCDFile<pcl::PointXYZ>(cloud_path, cloud0_ptr);
-  // for (size_t i = 0; i < cloud0_ptr->size(); ++i) {
-  //   cloud0_ptr->points[i].x /= 1000.0f;
-  //   cloud0_ptr->points[i].y /= 1000.0f;
-  //   cloud0_ptr->points[i].z /= 1000.0f;
-  // }
-
-  std::string cloud_path = path + "/desk_0001.txt";
+  std::string cloud_path = path + "/airplane_0001.txt";
   ReadCloudTXTFile(cloud_path, cloud0_ptr, 0, ',');
-  for (size_t i = 0; i < 5; ++i) {
-    AINFO << cloud0_ptr->points[i].x << " " << cloud0_ptr->points[i].y << " "
-          << cloud0_ptr->points[i].z;
-  }
 
-  std::vector<Eigen::Vector3f, Eigen::aligned_allocator<Eigen::Vector3f>>
-      points;
-  points.emplace_back(0, 0, 0);
-  points.emplace_back(1, 0, 0);
-  points.emplace_back(0, 100, 0);
-  points.emplace_back(0, 0, 1000);
-  points.emplace_back(0, 100, 1000);
-  points.emplace_back(1, 0, 1000);
-  points.emplace_back(1, 100, 0);
-  points.emplace_back(1, 100, 1000);
-  Container<float, 3> container(points);
-  // for (size_t i = 0; i < points.size(); ++i) {
-  //   AINFO << container.col(i).transpose();
-  // }
+  Eigen::MatrixXf points(cloud0_ptr->size(), 3);
+  for (size_t i = 0; i < cloud0_ptr->size(); ++i) {
+    points.row(i) = Eigen::Vector3f(cloud0_ptr->points[i].x, cloud0_ptr->points[i].y,
+                        cloud0_ptr->points[i].z).transpose();
+  }
+  Container<float, -1> container(points);
+  PrincipalComponentAnalysisXf pca(container);
+  AINFO << pca.getEigenVectors().rows() << " " << pca.getEigenVectors().cols();
+  Eigen::MatrixXf tmp1 = pca.DimensionReduction(container, 500);
 
   Container<float, 3> container2(cloud0_ptr);
-  // AINFO << container2.cols();
-  // AINFO << container2.rows();  // 3
-  // AINFO << container2.col(2).transpose();
+  PrincipalComponentAnalysis<float, 3> pca2(cloud0_ptr);;
+  AINFO << pca2.getEigenVectors().rows() << " " << pca2.getEigenVectors().cols();
+  Eigen::MatrixXf tmp2 = pca2.DimensionReduction(container2, 2);
 
-  // MatrixXf M1 = MatrixXf::Random(3, 8);
-  // cout << "Column major input:" << endl << M1 << "\n";
-  // cout << "M1.outerStride() = " << M1.outerStride() << endl;
-  // cout << "M1.innerStride() = " << M1.innerStride() << endl;
-  // Map<Eigen::Matrix<float, 2, Eigen::Dynamic>, Eigen::Aligned, OuterStride<>>
-  //     M2(M1.data(), M1.rows() - 1, M1.cols(), OuterStride<>(M1.rows()));
-  // cout << "1 column over 3:" << endl << M2 << "\n";
-
-  PrincipalComponentAnalysis<float, 3> pca(container2);
-  AINFO << pca.getDataMean().transpose();
-  AINFO << pca.getEigenValues().transpose();
-  AINFO << pca.getEigenVectors().rows() << " " << pca.getEigenVectors().cols();
-  Eigen::MatrixXf tmp = pca.DimensionReduction(container2, 2);
-  AINFO << tmp.rows() << " " << tmp.cols();
-  cloud_out_ptr->resize(cloud0_ptr->size());
+  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_out1_ptr(
+      new pcl::PointCloud<pcl::PointXYZ>());
+  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_out2_ptr(
+      new pcl::PointCloud<pcl::PointXYZ>());
+  cloud_out1_ptr->resize(cloud0_ptr->size());
+  cloud_out2_ptr->resize(cloud0_ptr->size());
   for (size_t i = 0; i < cloud0_ptr->size(); ++i) {
-    cloud_out_ptr->points[i].x = tmp(0, i);
-    cloud_out_ptr->points[i].y = tmp(1, i);
-    cloud_out_ptr->points[i].z = tmp(2, i);
+    cloud_out1_ptr->points[i].x = tmp1(i, 0);
+    cloud_out1_ptr->points[i].y = tmp1(i, 1);
+    cloud_out1_ptr->points[i].z = tmp1(i, 2);
+    cloud_out2_ptr->points[i].x = tmp2(0, i);
+    cloud_out2_ptr->points[i].y = tmp2(1, i);
+    cloud_out2_ptr->points[i].z = tmp2(2, i);
   }
-  // std::string cloud_out_ply_path = path + "cloud_pca_out_.ply";
-  // std::string cloud_out_pcd_path = path + "cloud_pca_out.pcd";
-  // SavePLYFile<pcl::PointXYZ>(cloud_out_ply_path, cloud_out_ptr);
-  // SavePCDFile<pcl::PointXYZ>(cloud_out_pcd_path, cloud_out_ptr);
+  std::string cloud_input_path = path + "cloud_pca_input.pcd";
+  std::string cloud_out1_path = path + "cloud_pca_out1.pcd";
+  std::string cloud_out2_path = path + "cloud_pca_out2.pcd";
+  SavePCDFile<pcl::PointXYZ>(cloud_input_path, cloud0_ptr, false);
+  SavePCDFile<pcl::PointXYZ>(cloud_out1_path, cloud_out1_ptr, false);
+  SavePCDFile<pcl::PointXYZ>(cloud_out2_path, cloud_out2_ptr, false);
 
   return 0;
 }

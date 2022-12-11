@@ -45,11 +45,11 @@ class PrincipalComponentAnalysis {
 
   inline void ComputeMean(const Container<ScalarT, EigenDim> &data) {
     // TODO:利用openmp加速
-    mean_ = PCAVectorType::Zero(EigenDim, 1);
+    mean_ = PCAVectorType::Zero(data.rows(), 1);
     for (size_t i = 0; i < data.cols(); ++i) mean_ += data.col(i);
     mean_ /= data.cols();
 
-    x_minus_mean_ = PCADataType::Zero(EigenDim, data.cols());
+    x_minus_mean_ = PCADataType::Zero(data.rows(), data.cols());
     for (size_t i = 0; i < data.cols(); ++i)
       x_minus_mean_.col(i) = data.col(i) - mean_;
   }
