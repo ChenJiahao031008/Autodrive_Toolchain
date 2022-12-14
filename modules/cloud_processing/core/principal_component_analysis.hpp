@@ -109,18 +109,55 @@ class KernelPrincipalComponentAnalysis {
   using DynamicType = Eigen::Matrix<ScalarT, Eigen::Dynamic, Eigen::Dynamic>;
   using VectorType = Eigen::Matrix<ScalarT, Eigen::Dynamic, 1>;
 
+  template <ptrdiff_t Dim = EigenDim,
+            class = typename std::enable_if<Dim != Eigen::Dynamic>::type>
   KernelPrincipalComponentAnalysis(const Container<ScalarT, EigenDim> &data,
+                                   bool transpose = false,
                                    kernel_type kp = kernel_type::Gaussian)
-      : kernel(kp), gamma(0.001), constant(1.0), order(2.0) {
+      : kernel(kp),
+        transpose_(transpose),
+        gamma(0.001),
+        constant(1.0),
+        order(2.0) {
+    if (!transpose_) {
+      N = data.rows();
+      M = data.cols() == -1 ? EigenDim : data.cols();
+    } else {
+      N = data.cols();
+      M = data.rows() == -1 ? EigenDim : data.rows();
+    }
+
+    ComputeGramMatrix(data);
+  };
+
+  template <ptrdiff_t Dim = EigenDim,
+            class = typename std::enable_if<Dim == Eigen::Dynamic>::type>
+  KernelPrincipalComponentAnalysis(Container<ScalarT, EigenDim> &data,
+                                   size_t dim, bool transpose = false,
+                                   kernel_type kp = kernel_type::Gaussian)
+      : kernel(kp),
+        transpose_(transpose),
+        gamma(0.001),
+        constant(1.0),
+        order(2.0) {
+    DynamicType copy_;
+
+    if (!transpose_) {
+      N = data.rows();
+      M = dim;
+    } else {
+      N = data.cols();
+      M = dim;
+    }
     ComputeGramMatrix(data);
   };
 
   void ComputeGramMatrix(const Container<ScalarT, EigenDim> &data) {
-    size_t N = data.rows();
     K = DynamicType::Zero(N, N);
     for (size_t i = 0; i < N; ++i) {
       for (size_t j = i; j < N; ++j) {
-        K(i, j) = K(j, i) = Kernel(data.row(i), data.row(j));
+        if (!transpose_) K(i, j) = K(j, i) = Kernel(data.row(i), data.row(j));
+        else K(i, j) = K(j, i) = Kernel(data.col(i), data.col(j));
       }
     }
     DynamicType J = DynamicType::Ones(N, N);
@@ -135,18 +172,17 @@ class KernelPrincipalComponentAnalysis {
     DynamicType eigenvectors = svd.matrixU();
     // todo: 加断言保证输入维度范围
     // todo: eigenval > 0?
-    size_t N = eigenvectors.rows();
     DynamicType Z(dimension, N);
     for (size_t i = 0; i < dimension; ++i) {
       DynamicType alpha = eigenvectors.row(N - i);
       alpha.normalize();
-      alpha /= std::sqrt(eigenvalues(N - i, 0) * eigenvalues(N - i, 0));
+      alpha /= std::sqrt(eigenvalues(N - i, 0));
       Z.row(i) = alpha;
     }
 
-    DynamicType result(N, data.cols());
+    DynamicType result(N, M);
     for (size_t i = 0; i < N; i++) {
-      for (size_t j = 0; j < data.cols(); j++) {
+      for (size_t j = 0; j < M; j++) {
         for (size_t k = 0; k < dimension; k++) {
           result(i, j) += K(i, k) * Z(k, j);
         }
@@ -158,9 +194,9 @@ class KernelPrincipalComponentAnalysis {
  private:
   DynamicType K;
   kernel_type kernel;
-  ScalarT gamma;
-  ScalarT order;
-  ScalarT constant;
+  ScalarT gamma, order, constant;
+  bool transpose_;
+  int N, M;
 
   ScalarT Kernel(const VectorType &a, const VectorType &b) {
     if (kernel == kernel_type::Linear)

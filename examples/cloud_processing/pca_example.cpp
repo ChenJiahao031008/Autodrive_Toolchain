@@ -47,46 +47,50 @@ int main(int argc, char **argv) {
   }
   Container<float, 3> container(cloud0_ptr);
   PrincipalComponentAnalysis<float, 3> pca(container, true);
-  // KernelPrincipalComponentAnalysis<float, -1> kpca(container);
   AINFO << pca.getEigenVectors().rows() << " " << pca.getEigenVectors().cols();
   Eigen::MatrixXf tmp1 = pca.DimensionReduction(container, 1000);
-  // Eigen::MatrixXf tmp3 = kpca.Decomposition(container, 10000);
 
   Container<float, 3> container2(cloud0_ptr);
   PrincipalComponentAnalysis<float, 3> pca2(cloud0_ptr);;
   AINFO << pca2.getEigenVectors().rows() << " " << pca2.getEigenVectors().cols();
   Eigen::MatrixXf tmp2 = pca2.DimensionReduction(container2, 2);
 
+  // fix bugs: -1 maybe not right
+  Container<float, 10000> container3(points);
+  KernelPrincipalComponentAnalysis<float, 10000> kpca(container3);
+  Eigen::MatrixXf tmp3 = kpca.Decomposition(container3, 10000);
+
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_out1_ptr(
       new pcl::PointCloud<pcl::PointXYZ>());
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_out2_ptr(
       new pcl::PointCloud<pcl::PointXYZ>());
-  // pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_out3_ptr(
-  //     new pcl::PointCloud<pcl::PointXYZ>());
+  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_out3_ptr(
+      new pcl::PointCloud<pcl::PointXYZ>());
   cloud_out1_ptr->resize(cloud0_ptr->size());
   cloud_out2_ptr->resize(cloud0_ptr->size());
-  // cloud_out3_ptr->resize(cloud0_ptr->size());
+  cloud_out3_ptr->resize(cloud0_ptr->size());
   std::cout << "tmp1 : " << tmp1.rows() << " " << tmp1.cols() << std::endl;
   std::cout << "tmp2 : " << tmp2.rows() << " " << tmp2.cols() << std::endl;
+  std::cout << "tmp3 : " << tmp3.rows() << " " << tmp3.cols() << std::endl;
   for (size_t i = 0; i < cloud0_ptr->size(); ++i) {
     cloud_out1_ptr->points[i].x = tmp1(i, 0);
     cloud_out1_ptr->points[i].y = tmp1(i, 1);
     cloud_out1_ptr->points[i].z = tmp1(i, 2);
-    // cloud_out3_ptr->points[i].x = tmp3(0, i);
-    // cloud_out3_ptr->points[i].y = tmp3(1, i);
-    // cloud_out3_ptr->points[i].z = tmp3(2, i);
     cloud_out2_ptr->points[i].x = tmp2(0, i);
     cloud_out2_ptr->points[i].y = tmp2(1, i);
     cloud_out2_ptr->points[i].z = tmp2(2, i);
+    cloud_out3_ptr->points[i].x = tmp3(i, 0);
+    cloud_out3_ptr->points[i].y = tmp3(i, 1);
+    cloud_out3_ptr->points[i].z = tmp3(i, 2);
   }
   std::string cloud_input_path = path + "cloud_pca_input.pcd";
   std::string cloud_out1_path = path + "cloud_pca_out1.pcd";
   std::string cloud_out2_path = path + "cloud_pca_out2.pcd";
-  // std::string cloud_out3_path = path + "cloud_pca_out3.pcd";
+  std::string cloud_out3_path = path + "cloud_pca_out3.pcd";
   SavePCDFile<pcl::PointXYZ>(cloud_input_path, cloud0_ptr, false);
   SavePCDFile<pcl::PointXYZ>(cloud_out1_path, cloud_out1_ptr, false);
   SavePCDFile<pcl::PointXYZ>(cloud_out2_path, cloud_out2_ptr, false);
-  // SavePCDFile<pcl::PointXYZ>(cloud_out3_path, cloud_out3_ptr, false);
+  SavePCDFile<pcl::PointXYZ>(cloud_out3_path, cloud_out3_ptr, false);
 
   return 0;
 }
