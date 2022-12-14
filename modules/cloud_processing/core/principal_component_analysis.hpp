@@ -44,7 +44,7 @@ class PrincipalComponentAnalysis {
   }
 
   inline void ComputeMean(const Container<ScalarT, EigenDim> &data) {
-    // TODO:利用openmp加速
+    // TODO:利用openmp加速, 试着选不同轴处理
     mean_ = PCAVectorType::Zero(data.rows(), 1);
     for (size_t i = 0; i < data.cols(); ++i) mean_ += data.col(i);
     mean_ /= data.cols();
@@ -86,5 +86,83 @@ using PrincipalComponentAnalysisXf =
     PrincipalComponentAnalysis<float, Eigen::Dynamic>;
 using PrincipalComponentAnalysisXd =
     PrincipalComponentAnalysis<double, Eigen::Dynamic>;
+
+template <typename ScalarT, ptrdiff_t EigenDim>
+class KernelPrincipalComponentAnalysis {
+ public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  enum class kernel_type : unsigned char {
+    Linear = 0,
+    Polynomial = 1,
+    Gaussian = 2,
+    Laplacian = 3
+  };
+  using DynamicType = Eigen::Matrix<ScalarT, Eigen::Dynamic, Eigen::Dynamic>;
+
+  KernelPrincipalComponentAnalysis(const Container<ScalarT, EigenDim> &data) {
+    ComputeGramMatrix(data);
+  };
+
+  void ComputeGramMatrix(const Container<ScalarT, EigenDim> &data,
+                         kernel_type kernel = kernel_type::Linear) {
+    size_t N = data.rows();
+    K = DynamicType::Zero(N, N);
+    for (size_t i = 0; i < N; ++i) {
+      for (size_t j = 0; j < N; ++j) {
+        if (kernel == kernel_type::Linear) {
+          K(i, j) = data.row(i) * data.row(j).transpose();
+        } else if (kernel == kernel_type::Polynomial) {
+          K(i, j) = std::pow(1 + data.row(i) * data.row(j).transpose(), param);
+        } else if (kernel == kernel_type::Gaussian) {
+          DynamicType diff = (data.row(i) - data.row(j)).transpose();
+          K(i, j) = std::exp(-param * diff.squaredNorm());
+        } else if (kernel == kernel_type::Laplacian) {
+          DynamicType diff = (data.row(i) - data.row(j)).transpose();
+          K(i, j) = std::exp(-param * diff.template lpNorm<1>());
+        }
+      }
+    }
+    DynamicType J = DynamicType::Ones(N, N);
+    K = K - 1.0f / N * (J * K + K * J) + 1.0f / (N * N) * J * K * J;
+  };
+
+  DynamicType Decomposition(const Container<ScalarT, EigenDim> &data,
+                            int dimension) {
+    Eigen::JacobiSVD<DynamicType> svd(
+        K, Eigen::ComputeFullU | Eigen::ComputeFullV);
+    DynamicType eigenvalues = svd.singularValues();
+    DynamicType eigenvectors = svd.matrixU();
+    // todo: 加断言保证输入维度范围
+    // todo: eigenval > 0?
+    size_t N = eigenvectors.rows();
+    DynamicType Z(dimension, N);
+    for (size_t i = 0; i < dimension; ++i) {
+      DynamicType alpha = eigenvectors.row(N - i);
+      alpha.normalize();
+      alpha /= std::sqrt(eigenvalues(N - i, 0));
+      Z.row(i) = alpha;
+    }
+    std::cout << "N: " << N << "\n";
+    std::cout << "Z.rows(): " << Z.rows() << "\n";
+    std::cout << "Z.cols(): " << Z.cols() << "\n";
+    std::cout << "K.rows(): " << K.rows() << "\n";
+    std::cout << "K.cols(): " << K.cols() << "\n";
+    std::cout << "data.rows(): " << data.rows() << "\n";
+    std::cout << "data.cols(): " << data.cols() << "\n";
+    DynamicType result(N, data.cols());
+    for (size_t i = 0; i < N; i++) {
+      for (size_t j = 0; j < data.cols(); j++) {
+        for (size_t k = 0; k < dimension; k++) {
+          result(i, j) += K(i, k) * Z(k, j);
+        }
+      }
+    }
+    return result;
+  };
+
+ private:
+  DynamicType K;
+  ScalarT param = 15;
+};
 
 }  // namespace cloud_processing

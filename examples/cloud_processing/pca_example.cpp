@@ -47,8 +47,10 @@ int main(int argc, char **argv) {
   }
   Container<float, -1> container(points);
   PrincipalComponentAnalysisXf pca(container);
+  KernelPrincipalComponentAnalysis<float, -1> kpca(container);
   AINFO << pca.getEigenVectors().rows() << " " << pca.getEigenVectors().cols();
-  Eigen::MatrixXf tmp1 = pca.DimensionReduction(container, 500);
+  Eigen::MatrixXf tmp1 = pca.DimensionReduction(container, 1000);
+  Eigen::MatrixXf tmp3 = kpca.Decomposition(container, 8000);
 
   Container<float, 3> container2(cloud0_ptr);
   PrincipalComponentAnalysis<float, 3> pca2(cloud0_ptr);;
@@ -59,8 +61,11 @@ int main(int argc, char **argv) {
       new pcl::PointCloud<pcl::PointXYZ>());
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_out2_ptr(
       new pcl::PointCloud<pcl::PointXYZ>());
+  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_out3_ptr(
+      new pcl::PointCloud<pcl::PointXYZ>());
   cloud_out1_ptr->resize(cloud0_ptr->size());
   cloud_out2_ptr->resize(cloud0_ptr->size());
+  cloud_out3_ptr->resize(cloud0_ptr->size());
   for (size_t i = 0; i < cloud0_ptr->size(); ++i) {
     cloud_out1_ptr->points[i].x = tmp1(i, 0);
     cloud_out1_ptr->points[i].y = tmp1(i, 1);
@@ -68,13 +73,18 @@ int main(int argc, char **argv) {
     cloud_out2_ptr->points[i].x = tmp2(0, i);
     cloud_out2_ptr->points[i].y = tmp2(1, i);
     cloud_out2_ptr->points[i].z = tmp2(2, i);
+    cloud_out3_ptr->points[i].x = tmp3(i, 0);
+    cloud_out3_ptr->points[i].y = tmp3(i, 1);
+    cloud_out3_ptr->points[i].z = tmp3(i, 2);
   }
   std::string cloud_input_path = path + "cloud_pca_input.pcd";
   std::string cloud_out1_path = path + "cloud_pca_out1.pcd";
   std::string cloud_out2_path = path + "cloud_pca_out2.pcd";
+  std::string cloud_out3_path = path + "cloud_pca_out3.ply";
   SavePCDFile<pcl::PointXYZ>(cloud_input_path, cloud0_ptr, false);
   SavePCDFile<pcl::PointXYZ>(cloud_out1_path, cloud_out1_ptr, false);
   SavePCDFile<pcl::PointXYZ>(cloud_out2_path, cloud_out2_ptr, false);
+  SavePLYFile<pcl::PointXYZ>(cloud_out3_path, cloud_out3_ptr, false);
 
   return 0;
 }
