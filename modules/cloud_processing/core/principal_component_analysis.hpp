@@ -13,66 +13,74 @@ class PrincipalComponentAnalysis {
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  using PCAVectorType = Eigen::Matrix<ScalarT, EigenDim, 1>;
-  using PCACovType = Eigen::Matrix<ScalarT, EigenDim, EigenDim>;
-  using PCADataType = Eigen::Matrix<ScalarT, EigenDim, Eigen::Dynamic>;
+  using DynamicType = Eigen::Matrix<ScalarT, Eigen::Dynamic, Eigen::Dynamic>;
+  using VectorType = Eigen::Matrix<ScalarT, Eigen::Dynamic, 1>;
 
  public:
-  PrincipalComponentAnalysis(const Container<ScalarT, EigenDim> &data) {
+  PrincipalComponentAnalysis(const Container<ScalarT, EigenDim> &data,
+                             bool transpose = false)
+      : transpose_(transpose) {
     ComputeMean(data);
-    ComputePrinciple();
+    Decomposition();
   }
 
   ~PrincipalComponentAnalysis() {}
 
-  inline const PCAVectorType &getDataMean() const { return mean_; }
-
-  inline const PCAVectorType &getEigenValues() const { return eigenvalues_; }
-
-  inline const PCACovType &getEigenValuesMatrix() const {
-    return (eigenvectors_.inverse() * H * eigenvectors_.transpose().inverse());
+  inline const VectorType &getDataMean() const { return mean_; }
+  inline const VectorType &getEigenValues() const { return eigenvalues_; }
+  inline const DynamicType &getEigenValuesMatrix() const {
+    return (eigenvectors_.inverse() * H_ * eigenvectors_.transpose().inverse());
   }
-
-  inline const PCACovType &getEigenVectors() const { return eigenvectors_; }
-
-  inline const PCADataType &getAfterMean() const { return x_minus_mean_; }
-
+  inline const DynamicType &getEigenVectors() const { return eigenvectors_; }
+  inline const DynamicType &getAfterMean() const { return x_minus_mean_; }
   inline const double &CheckSVDRes() const {
-    PCADataType data_tail =
+    DynamicType data_tail =
         eigenvectors_ * getEigenValuesMatrix() * eigenvectors_.transpose();
-    return (data_tail - H).norm();
+    return (data_tail - H_).norm();
   }
 
-  inline void ComputeMean(const Container<ScalarT, EigenDim> &data) {
-    // TODO:利用openmp加速, 试着选不同轴处理
-    mean_ = PCAVectorType::Zero(data.rows(), 1);
-    for (size_t i = 0; i < data.cols(); ++i) mean_ += data.col(i);
-    mean_ /= data.cols();
-
-    x_minus_mean_ = PCADataType::Zero(data.rows(), data.cols());
-    for (size_t i = 0; i < data.cols(); ++i)
-      x_minus_mean_.col(i) = data.col(i) - mean_;
-  }
-
-  inline Eigen::Matrix<ScalarT, Eigen::Dynamic, Eigen::Dynamic>
-  DimensionReduction(const Container<ScalarT, EigenDim> &data, int dimension) {
-    Eigen::Matrix<ScalarT, Eigen::Dynamic, Eigen::Dynamic> Z =
-        eigenvectors_.bottomRows(dimension);
-    return Z.transpose() * Z * data;
+  DynamicType DimensionReduction(const Container<ScalarT, EigenDim> &data,
+                                 int dimension) {
+    DynamicType Z = eigenvectors_.bottomRows(dimension);
+    if (!transpose_)
+      return Z.transpose() * Z * data;
+    else
+      return Z.transpose() * Z * data.transpose();
   };
 
- protected:
-  PCAVectorType mean_;
-  PCAVectorType eigenvalues_;
-  PCACovType covariance_;
-  PCACovType eigenvectors_;
-  PCADataType x_minus_mean_;
-  PCADataType H;
+ private:
+  VectorType mean_;
+  VectorType eigenvalues_;
+  DynamicType eigenvectors_;
+  DynamicType x_minus_mean_;
+  DynamicType H_;
+  bool transpose_;
 
-  inline void ComputePrinciple() {
-    H = x_minus_mean_ * x_minus_mean_.transpose();
-    Eigen::JacobiSVD<PCADataType> svd(
-        H, Eigen::ComputeThinU | Eigen::ComputeThinV);
+  void ComputeMean(const Container<ScalarT, EigenDim> &data) {
+    // TODO:利用openmp加速
+    if (!transpose_) {
+      mean_ = VectorType::Zero(data.rows(), 1);
+      for (size_t i = 0; i < data.cols(); ++i) mean_ += data.col(i);
+      mean_ /= data.cols();
+
+      x_minus_mean_ = DynamicType::Zero(data.rows(), data.cols());
+      for (size_t i = 0; i < data.cols(); ++i)
+        x_minus_mean_.col(i) = data.col(i) - mean_;
+    } else {
+      mean_ = VectorType::Zero(data.cols(), 1);
+      for (size_t i = 0; i < data.rows(); ++i) mean_ += data.row(i).transpose();
+      mean_ /= data.rows();
+
+      x_minus_mean_ = DynamicType::Zero(data.cols(), data.rows());
+      for (size_t i = 0; i < data.rows(); ++i)
+        x_minus_mean_.col(i) = data.row(i).transpose() - mean_;
+    }
+  }
+
+  void Decomposition() {
+    H_ = x_minus_mean_ * x_minus_mean_.transpose();
+    Eigen::JacobiSVD<DynamicType> svd(
+        H_, Eigen::ComputeThinU | Eigen::ComputeThinV);
     eigenvalues_ = svd.singularValues();
     eigenvectors_ = svd.matrixU();
   }
@@ -87,39 +95,32 @@ using PrincipalComponentAnalysisXf =
 using PrincipalComponentAnalysisXd =
     PrincipalComponentAnalysis<double, Eigen::Dynamic>;
 
+enum class kernel_type : unsigned char {
+  Linear = 0,
+  Polynomial = 1,
+  Gaussian = 2,
+  Laplacian = 3
+};
+
 template <typename ScalarT, ptrdiff_t EigenDim>
 class KernelPrincipalComponentAnalysis {
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-  enum class kernel_type : unsigned char {
-    Linear = 0,
-    Polynomial = 1,
-    Gaussian = 2,
-    Laplacian = 3
-  };
   using DynamicType = Eigen::Matrix<ScalarT, Eigen::Dynamic, Eigen::Dynamic>;
+  using VectorType = Eigen::Matrix<ScalarT, Eigen::Dynamic, 1>;
 
-  KernelPrincipalComponentAnalysis(const Container<ScalarT, EigenDim> &data) {
+  KernelPrincipalComponentAnalysis(const Container<ScalarT, EigenDim> &data,
+                                   kernel_type kp = kernel_type::Gaussian)
+      : kernel(kp), gamma(0.001), constant(1.0), order(2.0) {
     ComputeGramMatrix(data);
   };
 
-  void ComputeGramMatrix(const Container<ScalarT, EigenDim> &data,
-                         kernel_type kernel = kernel_type::Linear) {
+  void ComputeGramMatrix(const Container<ScalarT, EigenDim> &data) {
     size_t N = data.rows();
     K = DynamicType::Zero(N, N);
     for (size_t i = 0; i < N; ++i) {
-      for (size_t j = 0; j < N; ++j) {
-        if (kernel == kernel_type::Linear) {
-          K(i, j) = data.row(i) * data.row(j).transpose();
-        } else if (kernel == kernel_type::Polynomial) {
-          K(i, j) = std::pow(1 + data.row(i) * data.row(j).transpose(), param);
-        } else if (kernel == kernel_type::Gaussian) {
-          DynamicType diff = (data.row(i) - data.row(j)).transpose();
-          K(i, j) = std::exp(-param * diff.squaredNorm());
-        } else if (kernel == kernel_type::Laplacian) {
-          DynamicType diff = (data.row(i) - data.row(j)).transpose();
-          K(i, j) = std::exp(-param * diff.template lpNorm<1>());
-        }
+      for (size_t j = i; j < N; ++j) {
+        K(i, j) = K(j, i) = Kernel(data.row(i), data.row(j));
       }
     }
     DynamicType J = DynamicType::Ones(N, N);
@@ -139,16 +140,10 @@ class KernelPrincipalComponentAnalysis {
     for (size_t i = 0; i < dimension; ++i) {
       DynamicType alpha = eigenvectors.row(N - i);
       alpha.normalize();
-      alpha /= std::sqrt(eigenvalues(N - i, 0));
+      alpha /= std::sqrt(eigenvalues(N - i, 0) * eigenvalues(N - i, 0));
       Z.row(i) = alpha;
     }
-    std::cout << "N: " << N << "\n";
-    std::cout << "Z.rows(): " << Z.rows() << "\n";
-    std::cout << "Z.cols(): " << Z.cols() << "\n";
-    std::cout << "K.rows(): " << K.rows() << "\n";
-    std::cout << "K.cols(): " << K.cols() << "\n";
-    std::cout << "data.rows(): " << data.rows() << "\n";
-    std::cout << "data.cols(): " << data.cols() << "\n";
+
     DynamicType result(N, data.cols());
     for (size_t i = 0; i < N; i++) {
       for (size_t j = 0; j < data.cols(); j++) {
@@ -162,7 +157,21 @@ class KernelPrincipalComponentAnalysis {
 
  private:
   DynamicType K;
-  ScalarT param = 15;
+  kernel_type kernel;
+  ScalarT gamma;
+  ScalarT order;
+  ScalarT constant;
+
+  ScalarT Kernel(const VectorType &a, const VectorType &b) {
+    if (kernel == kernel_type::Linear)
+      return a.dot(b);
+    else if (kernel == kernel_type::Polynomial)
+      return (std::pow(a.dot(b) + constant, order));
+    else if (kernel == kernel_type::Gaussian)
+      return (std::exp(-gamma * ((a - b).squaredNorm())));
+    else if (kernel == kernel_type::Laplacian)
+      return (std::exp(-gamma * ((a - b).template lpNorm<1>())));
+  }
 };
 
 }  // namespace cloud_processing
