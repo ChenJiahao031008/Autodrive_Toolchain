@@ -133,8 +133,9 @@ class KernelPrincipalComponentAnalysis {
   template <ptrdiff_t Dim = EigenDim,
             class = typename std::enable_if<Dim == Eigen::Dynamic>::type>
   KernelPrincipalComponentAnalysis(Container<ScalarT, EigenDim> &data,
-                                   size_t dim, bool transpose = false,
-                                   kernel_type kp = kernel_type::Gaussian)
+                                   bool transpose = false,
+                                   kernel_type kp = kernel_type::Gaussian,
+                                   size_t dim = 3)
       : kernel(kp),
         transpose_(transpose),
         gamma(0.001),
@@ -145,10 +146,21 @@ class KernelPrincipalComponentAnalysis {
     if (!transpose_) {
       N = data.rows();
       M = dim;
+      copy_.resize(N, M);
     } else {
       N = data.cols();
       M = dim;
+      copy_.resize(M, N);
     }
+    // for (size_t i = 0; i < M; ++i) {
+    //   for (size_t j =0; j < N; ++j){
+    //     if (!transpose_) {
+    //       copy_(j, i) = data(j, i);
+    //     } else {
+    //       copy_(i, j) = data(i, j);
+    //     }
+    //   }
+    // }
     ComputeGramMatrix(data);
   };
 
@@ -156,8 +168,11 @@ class KernelPrincipalComponentAnalysis {
     K = DynamicType::Zero(N, N);
     for (size_t i = 0; i < N; ++i) {
       for (size_t j = i; j < N; ++j) {
-        if (!transpose_) K(i, j) = K(j, i) = Kernel(data.row(i), data.row(j));
-        else K(i, j) = K(j, i) = Kernel(data.col(i), data.col(j));
+        if (!transpose_)
+          K(i, j) = K(j, i) =
+              Kernel(data.row(i).transpose(), data.row(j).transpose());
+        else
+          K(i, j) = K(j, i) = Kernel(data.col(i), data.col(j));
       }
     }
     DynamicType J = DynamicType::Ones(N, N);
@@ -198,11 +213,11 @@ class KernelPrincipalComponentAnalysis {
   bool transpose_;
   int N, M;
 
-  ScalarT Kernel(const VectorType &a, const VectorType &b) {
+  ScalarT Kernel(const DynamicType &a, const DynamicType &b) {
     if (kernel == kernel_type::Linear)
-      return a.dot(b);
+      return (a.transpose() * b)(0, 0);
     else if (kernel == kernel_type::Polynomial)
-      return (std::pow(a.dot(b) + constant, order));
+      return (std::pow((a.transpose() * b)(0, 0) + constant, order));
     else if (kernel == kernel_type::Gaussian)
       return (std::exp(-gamma * ((a - b).squaredNorm())));
     else if (kernel == kernel_type::Laplacian)

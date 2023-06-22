@@ -45,14 +45,17 @@ int main(int argc, char **argv) {
     points.row(i) = Eigen::Vector3f(cloud0_ptr->points[i].x, cloud0_ptr->points[i].y,
                         cloud0_ptr->points[i].z).transpose();
   }
+  Eigen::MatrixXf points_transpose = points.transpose();
+
   Container<float, 3> container(cloud0_ptr);
   PrincipalComponentAnalysis<float, 3> pca(container, true);
   AINFO << pca.getEigenVectors().rows() << " " << pca.getEigenVectors().cols();
   Eigen::MatrixXf tmp1 = pca.DimensionReduction(container, 1000);
 
   Container<float, 3> container2(cloud0_ptr);
-  PrincipalComponentAnalysis<float, 3> pca2(cloud0_ptr);;
+  PrincipalComponentAnalysis<float, 3> pca2(cloud0_ptr);
   AINFO << pca2.getEigenVectors().rows() << " " << pca2.getEigenVectors().cols();
+  AINFO << container2.rows() << " " << container2.cols();
   Eigen::MatrixXf tmp2 = pca2.DimensionReduction(container2, 2);
 
   // fix bugs: -1 maybe not right

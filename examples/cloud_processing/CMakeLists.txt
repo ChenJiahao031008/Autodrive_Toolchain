@@ -10,14 +10,28 @@ link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/../../bin)
-add_executable(${PROJECT_NAME} pca_example.cpp)
-target_include_directories(${PROJECT_NAME} BEFORE PRIVATE ${PROJECT_SOURCE_DIR}/../../
+add_executable(pca_example pca_example.cpp)
+target_include_directories(pca_example BEFORE PRIVATE ${PROJECT_SOURCE_DIR}/../../
 ${PCL_INCLUDE_DIRS})
-target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
-target_link_libraries(${PROJECT_NAME} PRIVATE
+target_compile_features(pca_example PRIVATE cxx_std_17)
+target_link_libraries(pca_example PRIVATE
     common
     interface
     ${BACKWARD_ENABLE}
     ${PCL_LIBRARIES}
 )
-add_backward(${PROJECT_NAME})
+add_backward(pca_example)
+
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/../../bin)
+add_executable(filter_example filter_example.cpp)
+target_include_directories(filter_example BEFORE PRIVATE ${PROJECT_SOURCE_DIR}/../../
+${PCL_INCLUDE_DIRS})
+target_compile_features(filter_example PRIVATE cxx_std_17)
+target_link_libraries(filter_example PRIVATE
+    common
+    interface
+    ${BACKWARD_ENABLE}
+    ${PCL_LIBRARIES}
+)
+add_backward(filter_example)
